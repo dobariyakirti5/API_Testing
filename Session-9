@@ -1,0 +1,114 @@
+
+ Task 1: Create a Postman Collection:-
+
+Collection Name:** `FoodieApp APIs`
+
+Create three folders inside the collection:
+
+1. **Restaurants**
+   - Method: `GET`
+   - URL: `{{base_url}}/restaurants`
+
+2. **Authentication**
+   - Method: `POST`
+   - URL: `{{base_url}}/login`
+   - Body → raw → JSON:
+
+```json
+{
+  "email": "test@example.com",
+  "password": "TestPass123"
+}
+```
+
+3. **Orders**
+   - Method: `GET`
+   - URL: `{{base_url}}/orders`
+
+Task 2: Create the ZomatoTest Environment:-
+
+Create an environment named `ZomatoTest` and add these variables:
+
+| Variable | Initial value |
+|---|---|
+| `base_url` | `https://your-api.example.com` |
+| `user_token` | Leave empty |
+
+Replace the sample base URL with your actual API base URL.
+
+Use the variables in your requests:
+
+- GET Restaurants: `{{base_url}}/restaurants`
+- POST Login: `{{base_url}}/login`
+- GET Orders: `{{base_url}}/orders`
+
+For protected requests, open the Headers tab and add:
+
+| Key | Value |
+|---|---|
+| `Authorization` | `Bearer {{user_token}}` |
+
+Task 3: Export and Import the Collection and Environment:-
+
+Export the collection
+1. Open the `FoodieApp APIs` collection menu.
+2. Click Export.
+3. Choose Collection v2.1 JSON, if available.
+4. Save as `FoodieApp APIs.postman_collection.json`.
+
+Export the environment
+1. Open Environments.
+2. Select `ZomatoTest`.
+3. Use the Export option if available.
+4. Save as `ZomatoTest.postman_environment.json`.
+
+
+ Import and verify
+1. Open a new Postman workspace.
+2. Click Import.
+3. Import both JSON files.
+4. Check that the three folders and requests are present.
+5. Check that `base_url` and `user_token` exist in the environment.
+6. Select the environment and verify the requests use `{{base_url}}`.
+
+
+Task 4: Automatically Save and Reuse the Login Token:-
+
+A response token must be saved after the login request finishes. Therefore, use **Scripts → Post-response** (or the Tests tab in older Postman versions), not the pre-request script.
+
+Add this script to the `POST /login` request:
+
+```javascript
+pm.test("Login response is successful", function () {
+    pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+});
+
+if (pm.response.code === 200 || pm.response.code === 201) {
+    const responseData = pm.response.json();
+
+    if (responseData.token) {
+        pm.environment.set("user_token", responseData.token);
+        console.log("Login token saved successfully.");
+    } else {
+        console.error("Token was not found in the response.");
+    }
+}
+```
+
+This script expects a response like:
+
+```json
+{
+  "token": "sample_access_token_123"
+}
+```
+
+If your API returns `access_token` instead of `token`, change `responseData.token` to `responseData.access_token`.
+
+### Reuse the token
+
+In the `GET /orders` request, configure this header:
+
+```text
+Authorization: Bearer {{user_token}}
+```
