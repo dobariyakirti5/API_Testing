@@ -1,0 +1,88 @@
+Task 1: Create a Flipkart Product JSON File:-
+
+Objective: Create a JSON object representing a product with productId, name, price, inStock, and tags.
+
+File name: product.json
+
+{
+  "productId": 101,
+  "name": "Wireless Headphones",
+  "price": 1999.99,
+  "inStock": true,
+  "tags": [
+    "electronics",
+    "sale"
+  ]
+}
+
+Task 2: Create a Spotify-Style Playlist JSON:-
+
+Objective: Construct a JSON request body for a new playlist.
+
+{
+  "playlistName": "My Favourite Songs",
+  "description": "A collection of my favourite songs",
+  "songIds": [
+    101,
+    102,
+    103,
+    104
+  ]
+}  
+
+Task 3: Identify Path and Query Parameters:-
+
+Given endpoint:
+
+GET /movies/search?genre=action&year=2023
+
+Component
+
+Type
+
+Explanation
+
+/movies/search
+
+Path
+
+Identifies the movie search endpoint.
+
+genre=action
+
+Query parameter
+
+Filters movies by genre.
+
+year=2023
+
+Query parameter
+
+Filters movies by release year.
+
+
+
+Task 4: Sample Cricket Match Ticket Booking HTTP Request:-
+
+Objective: Construct an HTTP request to book a cricket match ticket.
+
+POST /matches/2026/tickets HTTP/1.1
+Host: api.example.com
+Content-Type: application/json
+Authorization: Bearer token123
+
+{
+  "userId": 501,
+  "seatNumber": "A12"
+}
+
+Task 5: Create a Zomato-Style Restaurant Review JSON:-
+
+Objective: Create a valid JSON payload for adding a restaurant review.
+
+{
+  "restaurantId": 201,
+  "userId": 501,
+  "rating": 5,
+  "reviewText": "The food was delicious, and the service was excellent."
+}
