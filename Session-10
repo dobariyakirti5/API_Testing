@@ -1,0 +1,397 @@
+
+ Task 1: Create an Order and Retrieve It Using Postman:-
+
+
+ Request 1: Create an Order
+
+- Method: `POST`
+- URL: `{{base_url}}/orders`
+- Header: `Content-Type: application/json`
+- Body → raw → JSON:
+
+```json
+{
+  "customerId": 101,
+  "restaurantId": 201,
+  "items": [
+    {
+      "productId": 301,
+      "quantity": 2
+    }
+  ],
+  "deliveryAddress": "Ahmedabad, Gujarat"
+}
+```
+
+Under **Scripts → Post-response**, add:
+
+```javascript
+pm.test("Order created successfully", function () {
+    pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+});
+
+const data = pm.response.json();
+
+pm.expect(data).to.have.property("id");
+pm.environment.set("order_id", String(data.id));
+
+console.log("Created order ID:", data.id);
+```
+
+ Request 2: Retrieve the Order
+
+- Method: `GET`
+- URL: `{{base_url}}/orders/{{order_id}}`
+
+Post-response test:
+
+```javascript
+pm.test("Order retrieved successfully", function () {
+    pm.response.to.have.status(200);
+});
+
+const data = pm.response.json();
+
+pm.test("Retrieved order ID matches created order ID", function () {
+    pm.expect(String(data.id)).to.eql(
+        pm.environment.get("order_id")
+    );
+});
+
+console.log("Retrieved order:", data);
+```
+
+
+---
+
+ Task 2: Automate a Product Purchase Using REST Assured in Java:-
+
+
+Create a Maven project with REST Assured and JUnit 5 dependencies. Add this Java class:
+
+**File:** `ProductPurchaseTest.java`
+
+```java
+import io.restassured.http.ContentType;
+import io.restassured.path.json.JsonPath;
+import org.junit.jupiter.api.Test;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
+
+public class ProductPurchaseTest {
+
+    private static final String BASE_URL =
+            "https://api.example.com";
+
+    @Test
+    public void purchaseProductWorkflow() {
+
+        // Step 1: Add product to cart
+        String cartResponse =
+            given()
+                .baseUri(BASE_URL)
+                .contentType(ContentType.JSON)
+                .body("""
+                    {
+                      "productId": 101,
+                      "quantity": 1
+                    }
+                    """)
+            .when()
+                .post("/cart")
+            .then()
+                .statusCode(anyOf(is(200), is(201)))
+                .extract()
+                .asString();
+
+        JsonPath cartData = new JsonPath(cartResponse);
+
+        int cartId = cartData.getInt("cartId");
+        int productId = cartData.getInt("productId");
+
+        System.out.println("Cart ID: " + cartId);
+        System.out.println("Product ID: " + productId);
+
+        // Step 2: Update cart quantity
+        given()
+            .baseUri(BASE_URL)
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                  "productId": %d,
+                  "quantity": 2
+                }
+                """.formatted(productId))
+        .when()
+            .put("/cart/" + cartId)
+        .then()
+            .statusCode(200)
+            .body("cartId", equalTo(cartId));
+
+        // Step 3: Place order
+        given()
+            .baseUri(BASE_URL)
+            .contentType(ContentType.JSON)
+            .body("""
+                {
+                  "cartId": %d,
+                  "productId": %d,
+                  "quantity": 2
+                }
+                """.formatted(cartId, productId))
+        .when()
+            .post("/orders")
+        .then()
+            .statusCode(anyOf(is(200), is(201)))
+            .body("orderId", notNullValue());
+
+        System.out.println("Purchase workflow completed.");
+    }
+}
+```
+
+
+ Task 3: Simulate a Movie Ticket Booking Workflow Using Python:-
+
+
+Install the required library:
+
+```bash
+pip install requests
+```
+
+**File:** `movie_booking.py`
+
+```python
+import requests
+
+BASE_URL = "https://api.example.com"
+session = requests.Session()
+
+try:
+    # Step 1: Search for a movie
+    movie_response = session.get(
+        f"{BASE_URL}/movies/search",
+        params={"title": "Example Movie"},
+        timeout=15
+    )
+    movie_response.raise_for_status()
+
+    movies = movie_response.json()
+
+    if not movies:
+        raise ValueError("No movies found.")
+
+    movie_id = movies[0]["id"]
+    print("Movie ID:", movie_id)
+
+    # Step 2: Select seats
+    seat_response = session.post(
+        f"{BASE_URL}/seats/select",
+        json={
+            "movieId": movie_id,
+            "seats": ["A1", "A2"]
+        },
+        timeout=15
+    )
+    seat_response.raise_for_status()
+
+    seat_data = seat_response.json()
+    seat_selection_id = seat_data["seatSelectionId"]
+
+    print("Seat Selection ID:", seat_selection_id)
+
+    # Step 3: Confirm booking
+    booking_response = session.post(
+        f"{BASE_URL}/bookings",
+        json={
+            "movieId": movie_id,
+            "seatSelectionId": seat_selection_id,
+            "seats": ["A1", "A2"]
+        },
+        timeout=15
+    )
+    booking_response.raise_for_status()
+
+    booking_data = booking_response.json()
+
+    print("Booking successful.")
+    print("Booking ID:", booking_data.get("bookingId"))
+    print("Response:", booking_data)
+
+except requests.RequestException as error:
+    print("API request failed:", error)
+
+except (KeyError, ValueError) as error:
+    print("Invalid response or workflow data:", error)
+```
+
+
+Task 4: Fix Restaurant ID Chaining in Postman:-
+
+
+ Request 1: Search Restaurants
+
+- Method: `GET`
+- URL: `{{base_url}}/restaurants?city=Ahmedabad`
+
+Example response:
+
+```json
+{
+  "restaurants": [
+    {
+      "id": 501,
+      "name": "Spice Garden"
+    }
+  ]
+}
+```
+
+Add this to **Scripts → Post-response**:
+
+```javascript
+const data = pm.response.json();
+
+pm.test("Restaurant search succeeds", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Restaurant ID is available", function () {
+    pm.expect(data.restaurants).to.be.an("array").that.is.not.empty;
+    pm.expect(data.restaurants[0].id).to.exist;
+});
+
+if (data.restaurants && data.restaurants.length > 0) {
+    pm.environment.set(
+        "restaurant_id",
+        String(data.restaurants[0].id)
+    );
+
+    console.log(
+        "Saved restaurant ID:",
+        pm.environment.get("restaurant_id")
+    );
+}
+```
+
+ Request 2: Create a Reservation
+
+- Method: `POST`
+- URL: `{{base_url}}/reservations`
+- Body → raw → JSON:
+
+```json
+{
+  "restaurantId": "{{restaurant_id}}",
+  "date": "2026-11-01",
+  "time": "19:00",
+  "guests": 2
+}
+```
+
+
+
+ Task 5: Chain Login, Fetch Playlists, and Add a Song:-
+
+
+
+
+
+```javascript
+const BASE_URL = "https://api.example.com";
+
+async function musicWorkflow() {
+
+    // Step 1: Login
+    const loginResponse = await fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: "test@example.com",
+            password: "TestPass123"
+        })
+    });
+
+    if (!loginResponse.ok) {
+        throw new Error(`Login failed: ${loginResponse.status}`);
+    }
+
+    const loginData = await loginResponse.json();
+    const token = loginData.token;
+
+    if (!token) {
+        throw new Error("Login response did not contain a token.");
+    }
+
+    console.log("Login successful.");
+
+    // Step 2: Fetch playlists
+    const playlistResponse = await fetch(
+        `${BASE_URL}/playlists`,
+        {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    if (!playlistResponse.ok) {
+        throw new Error(
+            `Playlist request failed: ${playlistResponse.status}`
+        );
+    }
+
+    const playlists = await playlistResponse.json();
+
+    if (!Array.isArray(playlists) || playlists.length === 0) {
+        throw new Error("No playlists found.");
+    }
+
+    const playlistId = playlists[0].id;
+    const songId = 1001;
+
+    console.log("Playlist ID:", playlistId);
+
+    // Step 3: Add a song to the playlist
+    const addSongResponse = await fetch(
+        `${BASE_URL}/playlists/${playlistId}/songs`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                songId: songId
+            })
+        }
+    );
+
+    if (!addSongResponse.ok) {
+        throw new Error(
+            `Adding song failed: ${addSongResponse.status}`
+        );
+    }
+
+    const result = await addSongResponse.json();
+
+    console.log("Song added successfully.");
+    console.log("Song ID:", songId);
+    console.log("Result:", result);
+}
+
+musicWorkflow().catch(error => {
+    console.error("Music workflow failed:", error.message);
+});
+```
+
+
+
+I learned how to chain API requests by extracting IDs and tokens from previous responses and reusing them in subsequent requests. I also learned how to automate end-to-end workflows using Postman, REST Assured, Python, and JavaScript.
+
+**Note:** The example URLs using `api.example.com` are placeholders, not working APIs. To execute the assignments, replace them with endpoints from a real or mock API that supports the specified operations.
