@@ -1,0 +1,311 @@
+# API Testing Assignment: Allure, Logging, and CI/CD
+
+
+ 2. Maven Configuration — `pom.xml`:-
+
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.api.testing</groupId>
+    <artifactId>ApiTestingProject</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <allure.version>2.29.1</allure.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.10.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.24.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.24.3</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+            </plugin>
+
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>2.15.0</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+
+ 3. API Test — `ApiTest.java`:-
+
+
+```java
+import io.qameta.allure.testng.AllureTestNg;
+import io.restassured.RestAssured;
+import io.restassured.filter.Filter;
+import io.restassured.response.Response;
+import io.restassured.specification.FilterableRequestSpecification;
+import io.restassured.specification.FilterableResponseSpecification;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.testng.Assert;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
+
+@Listeners(AllureTestNg.class)
+public class ApiTest {
+
+    private static final Logger log =
+            LogManager.getLogger(ApiTest.class);
+
+    private static final Filter apiLoggingFilter =
+        (FilterableRequestSpecification request,
+         FilterableResponseSpecification responseSpec,
+         io.restassured.filter.FilterContext context) -> {
+
+            log.info("REQUEST: {} {}",
+                    request.getMethod(), request.getURI());
+
+            if (request.getBody() != null) {
+                log.info("REQUEST BODY: {}", request.getBody());
+            }
+
+            Response response = context.next(request, responseSpec);
+
+            log.info("RESPONSE STATUS: {}", response.getStatusCode());
+            log.info("RESPONSE BODY: {}", response.getBody().asString());
+
+            return response;
+        };
+
+    @Test(description = "Verify GET post API")
+    public void getPostTest() {
+        log.debug("Starting GET post test");
+
+        RestAssured.given()
+                .filter(apiLoggingFilter)
+                .baseUri("https://jsonplaceholder.typicode.com")
+                .when()
+                .get("/posts/1")
+                .then()
+                .statusCode(200);
+
+        log.info("GET post test completed");
+    }
+
+    @Test(description = "Verify post response body")
+    public void verifyPostBody() {
+        Response response = RestAssured.given()
+                .filter(apiLoggingFilter)
+                .baseUri("https://jsonplaceholder.typicode.com")
+                .when()
+                .get("/posts/1");
+
+        Assert.assertEquals(response.getStatusCode(), 200);
+        Assert.assertEquals(response.jsonPath().getInt("id"), 1);
+        Assert.assertNotNull(response.jsonPath().getString("title"));
+
+        log.info("Post response body validation passed");
+    }
+
+    // Temporary test for logging verification.
+    // Remove or correct it after checking the output.
+    @Test
+    public void verifyLoggingOnFailure() {
+        log.debug("Debug message");
+        log.info("Info message");
+        log.warn("Warning message");
+        log.error("Error message");
+
+        Assert.assertEquals(500, 200,
+                "Intentional failure to verify logging");
+    }
+}
+```
+
+ 4. Logging Configuration — `log4j2.xml`:-
+
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                pattern="%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %c{1} - %msg%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
+```
+
+
+ 5. Generate Allure HTML Report:-
+
+Run these commands from your project directory:
+
+```bash
+mvn clean test
+mvn allure:report
+```
+
+The HTML report should be generated at:
+
+```text
+target/site/allure-maven-plugin/index.html
+```
+
+The raw Allure results should be available in:
+
+```text
+target/allure-results/
+```
+
+
+```bash
+allure serve target/allure-results
+```
+
+ 6. GitHub Actions CI Workflow — `api-tests.yml`:-
+
+
+```yaml
+name: API Testing CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Run API tests
+        run: mvn clean test
+
+      - name: Generate Allure HTML report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-html-report
+          path: target/site/allure-maven-plugin/
+          if-no-files-found: warn
+
+      - name: Upload Allure raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: target/allure-results/
+          if-no-files-found: warn
+```
+
+Push the project to your GitHub repository:
+
+```bash
+git add .
+git commit -m "Add API tests and Allure reporting"
+git push origin main
+```
+
+
+ 7. Change Logging Level to WARN
+
+
+Replace:
+
+```xml
+<Root level="INFO">
+    <AppenderRef ref="Console"/>
+</Root>
+```
+
+With:
+
+```xml
+<Root level="WARN">
+    <AppenderRef ref="Console"/>
+</Root>
+```
+
+
+
+ 8. Verify the Logging Output
+
+Run:
+
+```bash
+mvn clean test
+```
+
+
+
+
+
