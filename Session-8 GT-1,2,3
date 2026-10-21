@@ -1,0 +1,74 @@
+Task 1: Create a collection and retrieve restaurants by city:-
+
+
+Goal: Create a Postman collection called Food Delivery API Testing and add a GET request with a city query parameter.
+Request setup
+GET
+https://jsonplaceholder.typicode.com/posts
+
+Query parameter
+Key	Value
+city	Ahmedabad
+
+pm.test("API returns status 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Response is an array", function () {
+    const data = pm.response.json();
+    pm.expect(data).to.be.an("array");
+});
+
+console.log("Requested city:", pm.request.url.query.get("city"));
+
+Task 2: Use Collection Runner to create playlists from a CSV file:-
+
+
+{
+  "title": "{{playlistName}}",
+  "body": "{{description}}",
+  "userId": 1
+}
+
+
+pm.test("Playlist request returns 201", function () {
+    pm.response.to.have.status(201);
+});
+
+const responseData = pm.response.json();
+
+console.log("Playlist:", responseData.title);
+console.log("Description:", responseData.body);
+console.log("Returned ID:", responseData.id);
+
+
+Task 3: Data-driven login testing for a movie booking app:-
+
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+
+const testData = pm.iterationData;
+const expectedResult = testData.get("expectedResult");
+const statusCode = pm.response.code;
+
+let loginSucceeded = statusCode >= 200 && statusCode < 300;
+
+console.log(
+    "Email:", testData.get("email") || "(empty)",
+    "| Expected:", expectedResult,
+    "| Actual:", loginSucceeded ? "success" : "failure",
+    "| Status:", statusCode
+);
+
+pm.test("Login result matches expected result", function () {
+    if (expectedResult === "success") {
+        pm.expect(loginSucceeded).to.be.true;
+    } else {
+        pm.expect(loginSucceeded).to.be.false;
+    }
+});
+
