@@ -1,0 +1,71 @@
+Task 4: Reuse a Bearer token for two protected endpoints:-
+
+
+const baseUrl = "https://api.example.com";
+
+// Replace this with the token from your authentication response.
+const token = "YOUR_ACCESS_TOKEN";
+
+async function getProtectedData() {
+    const headers = {
+        Authorization: `Bearer ${token}`
+    };
+
+    const endpoints = ["/bookings", "/profile"];
+
+    for (const endpoint of endpoints) {
+        const response = await fetch(baseUrl + endpoint, {
+            method: "GET",
+            headers: headers
+        });
+
+        console.log(endpoint, "Status:", response.status);
+
+        if (response.status === 401) {
+            console.error("Unauthorized access:", endpoint);
+            continue;
+        }
+
+        const responseBody = await response.text();
+        console.log(endpoint, "Response:", responseBody);
+    }
+}
+
+getProtectedData().catch(console.error);
+
+Task 5: Handle a 401 Unauthorized response:-
+
+
+async function testProtectedEndpoint() {
+    const token = "YOUR_ACCESS_TOKEN";
+    const url = "https://api.example.com/protected";
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (response.status === 401) {
+            console.error(
+                "ERROR 401: Unauthorized. The token may be missing, invalid, or expired."
+            );
+            return;
+        }
+
+        if (!response.ok) {
+            console.error("API request failed:", response.status);
+            return;
+        }
+
+        const data = await response.json();
+        console.log("Protected endpoint response:", data);
+
+    } catch (error) {
+        console.error("Network or request error:", error.message);
+    }
+}
+
+testProtectedEndpoint();
