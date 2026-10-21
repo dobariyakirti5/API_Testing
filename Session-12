@@ -1,0 +1,367 @@
+# API Testing Assignment — Complete Solution
+
+## 1. Postman Collection: Food Delivery App APIs
+
+**Collection name:** `FoodDeliveryApp_API_Tests`
+
+**Base URL:** `https://your-api.example.com`
+
+
+### A. List Restaurants
+
+**Method:** GET
+
+**URL:**
+```text
+{{base_url}}/restaurants
+```
+
+**Positive test — valid request**
+
+```javascript
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Response is an array", function () {
+    const data = pm.response.json();
+    pm.expect(data).to.be.an("array");
+});
+```
+
+**Negative test — invalid city parameter**
+
+```text
+{{base_url}}/restaurants?city=InvalidCity999
+```
+
+```javascript
+pm.test("Invalid city returns a valid response", function () {
+    pm.expect([200, 400, 404]).to.include(pm.response.code);
+});
+
+if (pm.response.code === 200) {
+    pm.test("No restaurants match the invalid city", function () {
+        pm.expect(pm.response.json()).to.be.an("array").that.is.empty;
+    });
+}
+```
+
+ B. View a Single Restaurant
+
+**Method:** GET
+
+**Positive URL:**
+```text
+{{base_url}}/restaurants/1
+```
+
+```javascript
+pm.test("Restaurant details return status 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Restaurant ID is correct", function () {
+    const data = pm.response.json();
+    pm.expect(String(data.id)).to.eql("1");
+});
+```
+
+**Negative URL:**
+```text
+{{base_url}}/restaurants/999999
+```
+
+```javascript
+pm.test("Non-existent restaurant returns 404", function () {
+    pm.response.to.have.status(404);
+});
+```
+
+### C. Place an Order
+
+**Method:** POST
+
+**URL:**
+```text
+{{base_url}}/orders
+```
+
+**Headers:**
+```text
+Content-Type: application/json
+Authorization: Bearer {{user_token}}
+```
+
+**Request body — raw JSON:**
+```json
+{
+  "restaurantId": 1,
+  "items": [
+    {
+      "productId": 101,
+      "quantity": 2
+    }
+  ],
+  "deliveryAddress": "Ahmedabad, Gujarat"
+}
+```
+
+**Positive test — valid order**
+
+```javascript
+pm.test("Order created successfully", function () {
+    pm.expect(pm.response.code).to.be.oneOf([200, 201]);
+});
+
+pm.test("Order ID is returned", function () {
+    const data = pm.response.json();
+    pm.expect(data.orderId).to.exist;
+});
+```
+
+**Negative test — invalid order data**
+
+Use a separate POST request with this body:
+
+```json
+{
+  "restaurantId": -1,
+  "items": [],
+  "deliveryAddress": ""
+}
+```
+
+```javascript
+pm.test("Invalid order is rejected", function () {
+    pm.expect(pm.response.code).to.be.oneOf([400, 422]);
+});
+```
+
+
+ 2. REST Assured: Flipkart-Style Product Search API:-
+
+
+```java
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import static io.restassured.RestAssured.given;
+
+public class ProductSearchTest {
+
+    @BeforeClass
+    public void setup() {
+        RestAssured.baseURI = "https://your-api.example.com";
+    }
+
+    @Test
+    public void searchMatchingProducts() {
+
+        Response response = given()
+                .queryParam("keyword", "phone")
+                .when()
+                .get("/products/search");
+
+        Assert.assertEquals(response.getStatusCode(), 200);
+
+        String body = response.getBody().asString();
+        Assert.assertTrue(body.contains("products"));
+
+        int count = response.jsonPath()
+                .getList("products").size();
+
+        Assert.assertTrue(count > 0,
+                "Matching products should be returned");
+
+        for (int i = 0; i < count; i++) {
+            String productName = response.jsonPath()
+                    .getString("products[" + i + "].name");
+
+            Assert.assertTrue(
+                    productName.toLowerCase().contains("phone"),
+                    "Every returned product should match the keyword"
+            );
+        }
+    }
+
+    @Test
+    public void searchNoMatchingProducts() {
+
+        Response response = given()
+                .queryParam("keyword", "xyznotfound999")
+                .when()
+                .get("/products/search");
+
+        Assert.assertEquals(response.getStatusCode(), 200);
+
+        int count = response.jsonPath()
+                .getList("products").size();
+
+        Assert.assertEquals(count, 0,
+                "No products should match the unknown keyword");
+    }
+}
+```
+
+
+```json
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Android Phone"
+    }
+  ]
+}
+```
+
+
+ 3. Paytm-Like Login API: Invalid Credentials:-
+
+**Objective:** Verify that invalid login credentials are rejected with the expected status and error message.
+
+Create `LoginNegativeTest.java`.
+
+```java
+import io.restassured.response.Response;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import static io.restassured.RestAssured.given;
+
+public class LoginNegativeTest {
+
+    @Test
+    public void loginWithInvalidCredentials() {
+
+        Response response = given()
+                .baseUri("https://your-api.example.com")
+                .contentType("application/json")
+                .body("{\"username\":\"wrong_user\","
+                    + "\"password\":\"wrong_password\"}")
+                .when()
+                .post("/auth/login");
+
+        Assert.assertEquals(response.getStatusCode(), 401,
+                "Invalid credentials should return 401");
+
+        String message = response.jsonPath()
+                .getString("message");
+
+        Assert.assertEquals(message, "Invalid credentials",
+                "Error message should be correct");
+    }
+}
+```
+
+**Expected response example:**
+
+```json
+{
+  "message": "Invalid credentials"
+}
+```
+
+
+ 4. Refactor Duplicate Code into a Reusable Method:-
+
+
+```java
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.RequestSpecification;
+
+public class ApiTestBase {
+
+    protected RequestSpecification requestSpec;
+
+    @org.testng.annotations.BeforeClass
+    public void setupRequest() {
+        requestSpec = new RequestSpecBuilder()
+                .setBaseUri("https://your-api.example.com")
+                .setContentType("application/json")
+                .build();
+    }
+}
+```
+
+
+```java
+import io.restassured.response.Response;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import static io.restassured.RestAssured.given;
+
+public class ReusableApiTest extends ApiTestBase {
+
+    @Test
+    public void getRestaurants() {
+
+        Response response = given()
+                .spec(requestSpec)
+                .when()
+                .get("/restaurants");
+
+        Assert.assertEquals(response.getStatusCode(), 200);
+    }
+
+    @Test
+    public void getRestaurantById() {
+
+        Response response = given()
+                .spec(requestSpec)
+                .when()
+                .get("/restaurants/1");
+
+        Assert.assertEquals(response.getStatusCode(), 200);
+    }
+}
+```
+
+
+---
+
+ 5. AI-Generated Test: BookMyShow-Style Sold-Out Show:-
+
+
+
+```java
+import io.restassured.response.Response;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import static io.restassured.RestAssured.given;
+
+public class SoldOutBookingTest {
+
+    @Test
+    public void bookingSoldOutSeatShouldFail() {
+
+        Response response = given()
+                .baseUri("https://your-api.example.com")
+                .contentType("application/json")
+                .body("{\"showId\":\"SOLD_OUT_SHOW\","
+                    + "\"seatIds\":[\"A1\"]}")
+                .when()
+                .post("/bookings");
+
+        Assert.assertEquals(response.getStatusCode(), 409,
+                "Sold-out booking should return conflict");
+
+        String message = response.jsonPath()
+                .getString("message");
+
+        Assert.assertEquals(message, "Show is sold out",
+                "Correct sold-out error should be returned");
+    }
+}
+```
+
+
+
+
