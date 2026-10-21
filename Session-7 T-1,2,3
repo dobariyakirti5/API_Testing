@@ -1,0 +1,69 @@
+Task 1: Get the current Bitcoin price in INR using CoinGecko:-
+
+API endpoint
+
+GET https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=inr
+Steps in Postman
+1. Open Postman and create a new GET request.
+2. Enter the endpoint above.
+3. Open the Headers tab.
+4. Add the API key header required by your CoinGecko account. For CoinGecko Demo API keys, the header is typically x-cg-demo-api-key. Use the header specified for your account.
+5. Click Send.
+Example header:
+Key	Value
+x-cg-demo-api-key	{{coingecko_api_key}}
+Create the coingecko_api_key variable in your Postman environment and set its value locally.
+
+Expected response structure:
+
+{
+  "bitcoin": {
+    "inr": 0000000
+  }
+}
+
+Task 2: Authenticate with Spotify and fetch your profile:-
+
+
+const accessToken = "YOUR_SPOTIFY_ACCESS_TOKEN";
+
+async function getSpotifyProfile() {
+    const response = await fetch("https://api.spotify.com/v1/me", {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        }
+    });
+
+    if (response.status === 401) {
+        console.error("Error: Unauthorized. Check your Spotify access token.");
+        return;
+    }
+
+    if (!response.ok) {
+        console.error("Request failed:", response.status);
+        return;
+    }
+
+    const profile = await response.json();
+
+    console.log("Spotify profile:");
+    console.log("Display name:", profile.display_name);
+    console.log("User ID:", profile.id);
+    console.log("Email:", profile.email ?? "Not available");
+}
+
+getSpotifyProfile().catch(console.error);
+
+
+Task 3: Test a mock restaurant favorites endpoint with an API key:-
+
+The endpoint below is a fictional example, not a confirmed live Zomato API endpoint:
+
+GET https://api.example.com/user/favorites
+
+Run three separate requests in Postman.
+Test	Header	Expected behavior
+No API key	No x-api-key header	401 Unauthorized or 403 Forbidden
+Invalid API key	x-api-key: invalid-key	401 Unauthorized or 403 Forbidden
+Valid API key	x-api-key: {{restaurant_api_key}}	200 OK with favorites data
