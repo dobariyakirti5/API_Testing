@@ -1,0 +1,26 @@
+Task 4: Measure response time and assert it is below 1200 ms:-
+
+Method: GET
+
+URL: https://jsonplaceholder.typicode.com/albums
+
+Add this script under Scripts → Post-response:
+
+pm.test("Response time is less than 1200 ms", function () {
+    console.log("Response time:", pm.response.responseTime, "ms");
+
+    pm.expect(pm.response.responseTime).to.be.below(1200);
+});
+
+Task 5: JSON schema for a restaurant object:-
+
+Imagine a food delivery application where the API returns restaurant information.
+
+Example JSON response:
+
+{
+  "id": 101,
+  "name": "Spice Garden",
+  "location": "Ahmedabad",
+  "rating": 4.5
+}
