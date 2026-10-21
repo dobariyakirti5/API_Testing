@@ -1,0 +1,75 @@
+Task 4: Use environment variables for product details:-
+
+
+GET {{baseUrl}}/products/{{productId}}
+
+
+pm.test("Product request returns 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Product response contains an ID", function () {
+    const product = pm.response.json();
+
+    pm.expect(product).to.have.property("id");
+    pm.expect(Number(product.id)).to.eql(
+        Number(pm.environment.get("productId"))
+    );
+});
+
+console.log("Base URL:", pm.environment.get("baseUrl"));
+console.log("Product ID:", pm.environment.get("productId"));
+
+Task 5: Generate user profiles and run a data-driven test:-
+
+
+[
+  {
+    "username": "kirti_test",
+    "email": "kirti.test@example.com",
+    "phone": "9000000001"
+  },
+  {
+    "username": "rahul_test",
+    "email": "rahul.test@example.com",
+    "phone": "9000000002"
+  },
+  {
+    "username": "priya_test",
+    "email": "priya.test@example.com",
+    "phone": "9000000003"
+  },
+  {
+    "username": "amit_test",
+    "email": "amit.test@example.com",
+    "phone": "9000000004"
+  },
+  {
+    "username": "neha_test",
+    "email": "neha.test@example.com",
+    "phone": "9000000005"
+  }
+]
+
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "phone": "{{phone}}"
+}
+
+
+pm.test("User creation returns 201", function () {
+    pm.response.to.have.status(201);
+});
+
+const user = pm.response.json();
+
+pm.test("Username, email, and phone are returned", function () {
+    pm.expect(user.username).to.be.a("string").and.not.empty;
+    pm.expect(user.email).to.be.a("string").and.not.empty;
+    pm.expect(user.phone).to.be.a("string").and.not.empty;
+});
+
+console.log("Tested user:", user.username);
+console.log("Email:", user.email);
