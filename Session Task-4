@@ -1,0 +1,119 @@
+# Task 4: Difference Between PUT and PATCH Methods
+
+
+## 1. Difference Between PUT and PATCH
+
+| Point | PUT | PATCH |
+|---|---|---|
+| Purpose | Replaces or updates a complete resource | Updates selected fields of a resource |
+| Data sent | Usually the complete resource | Only the fields that need to change |
+| Example | Updating the entire user profile | Updating only the phone number |
+| Request body | Full profile details | Partial profile details |
+| HTTP method | PUT | PATCH |
+
+## 2. Real-World Example
+
+Suppose a food delivery app has this user profile:
+
+```json
+{
+  "name": "Kirti",
+  "email": "kirti@example.com",
+  "phone": "9876543210"
+}
+```
+
+### Example A: PUT Request
+
+Use PUT when you want to replace the complete profile representation.
+
+**Request:**
+
+```http
+PUT /users/1
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "name": "Kirti Dobariya",
+  "email": "kirti@example.com",
+  "phone": "9123456780"
+}
+```
+
+**Explanation:** The request sends the complete profile with the updated name and phone number.
+
+Under standard replacement semantics, fields omitted from the request may be removed or reset, depending on the API.
+
+### Example B: PATCH Request
+
+Use PATCH when you want to update only one field.
+
+**Request:**
+
+```http
+PATCH /users/1
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "phone": "9123456780"
+}
+```
+
+**Explanation:** Only the phone number is being updated. The name and email are intended to remain unchanged.
+
+Note: `/users/1` is an illustrative endpoint, not a real food delivery API.
+
+## 3. JavaScript Code Example
+
+### PUT Request
+
+```javascript
+const updatedProfile = {
+  name: "Kirti Dobariya",
+  email: "kirti@example.com",
+  phone: "9123456780"
+};
+
+fetch("https://jsonplaceholder.typicode.com/users/1", {
+  method: "PUT",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(updatedProfile)
+})
+  .then(async (response) => {
+    console.log("Method: PUT");
+    console.log("Status Code:", response.status);
+    console.log("Response:", await response.json());
+  })
+  .catch((error) => console.error("Error:", error));
+```
+
+### PATCH Request
+
+```javascript
+const updatedPhone = {
+  phone: "9123456780"
+};
+
+fetch("https://jsonplaceholder.typicode.com/users/1", {
+  method: "PATCH",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(updatedPhone)
+})
+  .then(async (response) => {
+    console.log("Method: PATCH");
+    console.log("Status Code:", response.status);
+    console.log("Response:", await response.json());
+  })
+  .catch((error) => console.error("Error:", error));
