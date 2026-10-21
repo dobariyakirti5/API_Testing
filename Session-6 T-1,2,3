@@ -1,0 +1,52 @@
+Task 1: Assert status code is exactly 200:-
+
+Method: GET
+
+URL: https://jsonplaceholder.typicode.com/posts/1
+
+Steps in Postman:
+1. Open Postman and create a new request.
+2. Select GET and enter the URL.
+3. Open the Scripts → Post-response tab.
+4. Add this assertion and click Send.
+
+pm.test("Status code is exactly 200", function () {
+    pm.response.to.have.status(200);
+});
+
+Task 2: Validate username and address data types:-
+
+Method: GET
+
+URL: https://jsonplaceholder.typicode.com/users/3
+
+Add this script under Scripts → Post-response:
+
+pm.test("Username exists and is a string", function () {
+    const data = pm.response.json();
+
+    pm.expect(data).to.have.property("username");
+    pm.expect(data.username).to.be.a("string");
+});
+
+pm.test("Address exists and is an object", function () {
+    const data = pm.response.json();
+
+    pm.expect(data).to.have.property("address");
+    pm.expect(data.address).to.be.an("object");
+    pm.expect(data.address).to.not.be.null;
+});
+
+Task 3: Validate the Content-Type response header:-
+
+Method: GET
+
+URL: https://jsonplaceholder.typicode.com/comments/5
+
+Add this script under Scripts → Post-response:
+
+pm.test("Content-Type header is correct", function () {
+    pm.expect(
+        pm.response.headers.get("Content-Type")
+    ).to.eql("application/json; charset=utf-8");
+});
