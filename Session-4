@@ -1,0 +1,86 @@
+
+async function runAPITests() {
+    // TASK 1: GET a single post and print status + full JSON response:-
+    console.log("\n========== TASK 1 ==========");
+
+    let response1 = await fetch(
+        "https://jsonplaceholder.typicode.com/posts/1"
+    );
+
+    let data1 = await response1.json();
+
+    console.log("Status Code:", response1.status);
+    console.log("Full JSON Response:");
+    console.log(JSON.stringify(data1, null, 2));
+
+
+    // TASK 2: Assert status code is 200 and body has at least 5 users:-
+    console.log("\n========== TASK 2 ==========");
+
+    let response2 = await fetch(
+        "https://jsonplaceholder.typicode.com/users"
+    );
+
+    let data2 = await response2.json();
+
+    if (
+        response2.status === 200 &&
+        Array.isArray(data2) &&
+        data2.length >= 5
+    ) {
+        console.log("PASS: Status is 200 and at least 5 users were returned.");
+        console.log("Total users:", data2.length);
+    } else {
+        console.log("FAIL: Status or user array validation failed.");
+    }
+
+
+    // TASK 3: Assert every comment has a non-empty email:-
+    console.log("\n========== TASK 3 ==========");
+
+    let response3 = await fetch(
+        "https://jsonplaceholder.typicode.com/comments?postId=1"
+    );
+
+    let data3 = await response3.json();
+
+    if (
+        response3.ok &&
+        Array.isArray(data3) &&
+        data3.every(
+            comment =>
+                typeof comment.email === "string" &&
+                comment.email.trim() !== ""
+        )
+    ) {
+        console.log("PASS: Every comment has a non-empty email.");
+        console.log("Total comments:", data3.length);
+    } else {
+        console.log("FAIL: At least one comment has an empty or invalid email.");
+    }
+
+
+    // TASK 4: Assert response contains numeric userId:-
+    console.log("\n========== TASK 4 ==========");
+
+    let response4 = await fetch(
+        "https://jsonplaceholder.typicode.com/albums/3"
+    );
+
+    let data4 = await response4.json();
+
+    if (
+        response4.ok &&
+        Object.prototype.hasOwnProperty.call(data4, "userId") &&
+        typeof data4.userId === "number"
+    ) {
+        console.log("PASS: userId exists and its value is a number.");
+        console.log("userId:", data4.userId);
+    } else {
+        console.log("FAIL: userId is missing or is not a number.");
+    }
+}
+
+runAPITests().catch(error => {
+    console.error("API test execution failed:", error);
+});
