@@ -1,0 +1,39 @@
+Task 3: Update only the title using PATCH:-
+PATCH
+Request URL
+
+https://jsonplaceholder.typicode.com/posts/101
+
+Steps
+1. Change the method to PATCH.
+2. Keep the same post ID in the URL.
+3. Select Body → raw → JSON.
+4. Enter only the field you want to update:
+
+{
+  "title": "Title Updated Using PATCH"
+}
+
+Task 4: Delete the post using DELETE:-
+DELETE
+Request URL
+
+https://jsonplaceholder.typicode.com/posts/101
+
+Steps
+1. Change the method to DELETE.
+2. Enter the URL with your post ID.
+3. Click Send.
+Expected result:
+- Status code: 200 OK
+- The response body is typically an empty JSON object: {}.
+
+Task 5: CRUD validation report:-
+
+Use this table to record your actual Postman results.
+Operation	Method	Expected status	Key response fields
+Create post	POST	201 Created	id, title, body, userId
+Update post	PUT	200 OK	id, updated title, updated body
+Update title	PATCH	200 OK	Updated title, existing body
+Delete post	DELETE	200 OK	Usually {}
+Fetch after delete	GET	200 OK	Post may still be returned
