@@ -1,0 +1,40 @@
+Task 1: Create a new post using POST:-
+
+POST
+Request URL
+
+https://jsonplaceholder.typicode.com/posts
+
+Steps in Postman
+1. Open Postman and create a new HTTP request.
+2. Select the POST method.
+3. Enter the URL above.
+4. Open Body → raw → JSON.
+5. Enter this JSON:
+
+{
+  "title": "My First API Test",
+  "body": "This post was created using Postman.",
+  "userId": 1
+}
+
+Task 2: Update the post using PUT:-
+PUT
+Request URL
+
+https://jsonplaceholder.typicode.com/posts/101
+
+Replace 101 with the ID from Task 1.
+
+Steps
+1. Change the method to PUT.
+2. Enter the URL using your post ID.
+3. Select Body → raw → JSON.
+4. Enter the updated data:
+
+{
+  "id": 101,
+  "title": "Updated API Test",
+  "body": "The title and body were updated using PUT.",
+  "userId": 1
+}
